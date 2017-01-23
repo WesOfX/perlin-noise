@@ -4,24 +4,6 @@
 #include <random>
 
 namespace perlin{
-	typedef double result_type;
-	result_type noise(
-		result_type x = 0.0,
-		decltype(x) y = 0.0,
-		decltype(x) z = 0.0
-	);
-	result_type fade(result_type t);
-	result_type lerp(
-		result_type t,
-		decltype(t) a,
-		decltype(t) b
-	);
-	result_type grad(
-		int hash,
-		result_type x,
-		decltype(x) y,
-		decltype(x) z
-	);
 	constexpr std::array<int, 512> permutation = {
 		151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96, 53, 194, 233,
 		7, 225, 140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21, 10, 23, 
@@ -61,4 +43,78 @@ namespace perlin{
 		115, 121, 50, 45, 127, 4, 150, 254, 138, 236, 205, 93, 222, 114,
 		67, 29, 24, 72, 243, 141, 128, 195, 78, 66, 215, 61, 156, 180
 	};
+	
+	template<typename result_type> result_type fade(result_type t){
+		return t * t * t * (t * (t * 6 - 15) + 10);
+	}
+	
+	template<typename result_type> result_type lerp(
+		result_type t,
+		decltype(t) a,
+		decltype(t) b
+	){
+		return a + t * (b - a);
+	}
+	
+	template<typename result_type> result_type grad(
+		int hash,
+		result_type x,
+		decltype(x) y,
+		decltype(x) z
+	){
+		auto h = hash & 15;
+		auto u = h < 8 ? x : y,
+			 v = h < 4 ? y : h == 12 || h == 14 ? x : z;
+		return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
+	}
+	
+	template<typename result_type> result_type noise(
+		result_type x = 0.0,
+		decltype(x) y = 0.0,
+		decltype(x) z = 0.0
+	){
+		auto unit_x = (int)floor(x) & 255,
+			 unit_y = (int)floor(y) & 255,
+			 unit_z = (int)floor(z) & 255;
+		x -= floor(x);
+		y -= floor(y);
+		z -= floor(z);
+		auto u = fade(x),
+			 v = fade(y),
+			 w = fade(z);
+		auto a = permutation[unit_x] + unit_y,
+			 aa = permutation[a] + unit_z,
+			 ab = permutation[a + 1] + unit_z,
+			 b = permutation[unit_x + 1] + unit_y,
+			 ba = permutation[b] + unit_z,
+			 bb = permutation[b + 1] + unit_z;	
+		return lerp(w,
+			lerp(
+				v,
+				lerp(
+					u,
+					grad(permutation[aa], x, y, z),
+					grad(permutation[ba], x - 1, y, z)
+				),
+				lerp(
+					u,
+					grad(permutation[ab], x, y - 1, z),
+					grad(permutation[bb], x - 1, y - 1, z)
+				)
+			),
+			lerp(
+				v,
+				lerp(
+					u,
+					grad(permutation[aa + 1], x, y, z - 1),
+					grad(permutation[ba + 1], x - 1, y, z - 1)
+				),
+				lerp(
+					u,
+					grad(permutation[ab + 1], x, y - 1, z - 1),
+					grad(permutation[bb + 1], x - 1, y - 1, z - 1)
+				)
+			)
+		);
+	}
 };
