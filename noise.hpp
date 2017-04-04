@@ -68,7 +68,7 @@ namespace perlin{
 		     + ((h & 2) == 0 ? v : -v);
 	}
 	
-	inline constexpr real at(
+	inline constexpr real noise(
 		const real x = 0.0,
 		const real y = 0.0,
 		const real z = 0.0
