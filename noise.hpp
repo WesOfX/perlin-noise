@@ -1,6 +1,6 @@
 #pragma once
 
-namespace pn{
+namespace perlin{
 	typedef float real;
 	
 	constexpr uint_fast8_t perm[512] = {
