@@ -1,10 +1,9 @@
 #pragma once
 
-#include <array>
-#include <random>
-
-namespace perlin{
-	constexpr std::array<int, 512> permutation = {
+namespace pn{
+	typedef float real;
+	
+	constexpr uint_fast8_t perm[512] = {
 		151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96, 53, 194, 233,
 		7, 225, 140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21, 10, 23, 
 		190, 6, 148, 247, 120, 234, 75, 0, 26, 197, 62, 94, 252, 219,
@@ -44,75 +43,116 @@ namespace perlin{
 		67, 29, 24, 72, 243, 141, 128, 195, 78, 66, 215, 61, 156, 180
 	};
 	
-	template<typename result_type> result_type fade(result_type t){
-		return t * t * t * (t * (t * 6 - 15) + 10);
+	inline constexpr real fade(const real t){
+		return pow(t, 3) * (t * (t * 6 - 15) + 10);
 	}
 	
-	template<typename result_type> result_type lerp(
-		result_type t,
-		decltype(t) a,
-		decltype(t) b
+	inline constexpr real lerp(
+		const real t,
+		const real a,
+		const real b
 	){
 		return a + t * (b - a);
 	}
 	
-	template<typename result_type> result_type grad(
-		int hash,
-		result_type x,
-		decltype(x) y,
-		decltype(x) z
+	inline constexpr real grad(
+		const int hash,
+		const real x,
+		const real y,
+		const real z
 	){
-		auto h = hash & 15;
-		auto u = h < 8 ? x : y,
-			 v = h < 4 ? y : h == 12 || h == 14 ? x : z;
-		return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
+		const auto h = hash & 15;
+		const auto u = h < 8 ? x : y,
+			       v = h < 4 ? y : h == 12 || h == 14 ? x : z;
+		return ((h & 1) == 0 ? u : -u) 
+		     + ((h & 2) == 0 ? v : -v);
 	}
 	
-	template<typename result_type> result_type noise(
-		result_type x = 0.0,
-		decltype(x) y = 0.0,
-		decltype(x) z = 0.0
+	inline constexpr real at(
+		const real x = 0.0,
+		const real y = 0.0,
+		const real z = 0.0
 	){
-		auto unit_x = (int)floor(x) & 255,
-			 unit_y = (int)floor(y) & 255,
-			 unit_z = (int)floor(z) & 255;
-		x -= floor(x);
-		y -= floor(y);
-		z -= floor(z);
-		auto u = fade(x),
-			 v = fade(y),
-			 w = fade(z);
-		auto a = permutation[unit_x] + unit_y,
-			 aa = permutation[a] + unit_z,
-			 ab = permutation[a + 1] + unit_z,
-			 b = permutation[unit_x + 1] + unit_y,
-			 ba = permutation[b] + unit_z,
-			 bb = permutation[b + 1] + unit_z;	
+		const auto unit_x = (int)floor(x) & 255,
+			       unit_y = (int)floor(y) & 255,
+			       unit_z = (int)floor(z) & 255;
+		const auto sub_x = x - floor(x),
+		           sub_y = y - floor(y),
+		           sub_z = z - floor(z);
+		const auto u = fade(sub_x),
+			       v = fade(sub_y),
+			       w = fade(sub_z);
+		const auto a = perm[unit_x] + unit_y,
+			      aa = perm[a] + unit_z,
+			      ab = perm[a + 1] + unit_z,
+			       b = perm[unit_x + 1] + unit_y,
+			      ba = perm[b] + unit_z,
+			      bb = perm[b + 1] + unit_z;	
 		return lerp(w,
 			lerp(
 				v,
 				lerp(
 					u,
-					grad(permutation[aa], x, y, z),
-					grad(permutation[ba], x - 1, y, z)
+					grad(
+						perm[aa], 
+						sub_x, 
+						sub_y, 
+						sub_z
+					),
+					grad(
+						perm[ba], 
+						sub_x - 1, 
+						sub_y, 
+						sub_z
+					)
 				),
 				lerp(
 					u,
-					grad(permutation[ab], x, y - 1, z),
-					grad(permutation[bb], x - 1, y - 1, z)
+					grad(
+						perm[ab], 
+						sub_x, 
+						sub_y - 1, 
+						sub_z
+					),
+					grad(
+						perm[bb], 
+						sub_x - 1, 
+						sub_y - 1, 
+						sub_z
+					)
 				)
 			),
 			lerp(
 				v,
 				lerp(
 					u,
-					grad(permutation[aa + 1], x, y, z - 1),
-					grad(permutation[ba + 1], x - 1, y, z - 1)
+					grad(
+						perm[aa + 1], 
+						sub_x, 
+						sub_y, 
+						sub_z - 1
+					),
+					grad(
+						perm[ba + 1], 
+						sub_x - 1, 
+						sub_y, 
+						sub_z - 1
+					)
 				),
 				lerp(
 					u,
-					grad(permutation[ab + 1], x, y - 1, z - 1),
-					grad(permutation[bb + 1], x - 1, y - 1, z - 1)
+					grad(
+						perm[ab + 1], 
+						sub_x, 
+						sub_y - 1, 
+						sub_z - 1
+					),
+					grad(
+						perm[bb + 1], 
+						sub_x - 1,
+						sub_y - 1, 
+						sub_z - 1
+					)
 				)
 			)
 		);
