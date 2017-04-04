@@ -5,8 +5,7 @@ The `noise` method returns a `real` value from three `real` input values. `real`
 
 `real` is a typedef of `float` but it can be changed to any floating-point arithmatic type. Alternatively, all the functions in `noise.hpp` could be templated to take any floating-point arithmatic type. For simplicity, I chose not to template them. Note there is no `static_assert` to ensure `real` is a floating-point type if you decide to change the type of `real`.
 
-*Minimal examples.*
-
+*Minimal examples:*
 ```cpp
 #include <iostream>
 #include "noise.hpp"
