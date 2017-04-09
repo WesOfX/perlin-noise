@@ -1,9 +1,10 @@
 #pragma once
+#include <cmath>
+#include <cstdint>
+#include <type_traits>
 
 namespace perlin{
-    typedef float real;
-
-    constexpr uint_fast8_t perm[512] = {
+    static constexpr uint_fast8_t perm[512] = {
         151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96, 53, 194, 233,
         7, 225, 140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21, 10, 23,
         190, 6, 148, 247, 120, 234, 75, 0, 26, 197, 62, 94, 252, 219,
@@ -42,25 +43,40 @@ namespace perlin{
         115, 121, 50, 45, 127, 4, 150, 254, 138, 236, 205, 93, 222, 114,
         67, 29, 24, 72, 243, 141, 128, 195, 78, 66, 215, 61, 156, 180
     };
-
+	
+	template<class real>
     inline constexpr real fade(const real t){
+    	static_assert(
+    		std::is_floating_point<real>::value, 
+    		"real must be a floating point type"
+    	);
         return pow(t, 3) * (t * (t * 6 - 15) + 10);
     }
-
+	
+	template<class real>
     inline constexpr real lerp(
         const real t,
         const real a,
         const real b
     ){
+    	static_assert(
+    		std::is_floating_point<real>::value, 
+    		"real must be a floating point type"
+    	);
         return a + t * (b - a);
     }
 
+	template<class real>
     inline constexpr real grad(
         const int hash,
         const real x,
         const real y,
         const real z
     ){
+    	static_assert(
+    		std::is_floating_point<real>::value, 
+    		"real must be a floating point type"
+    	);
         const auto h = hash & 15;
         const auto u = h < 8 ? x : y,
                    v = h < 4 ? y : h == 12 || h == 14 ? x : z;
@@ -68,11 +84,16 @@ namespace perlin{
              + ((h & 2) == 0 ? v : -v);
     }
 
+	template<class real>
     inline constexpr real noise(
         const real x = 0.0,
         const real y = 0.0,
         const real z = 0.0
     ){
+    	static_assert(
+    		std::is_floating_point<real>::value, 
+    		"real must be a floating point type"
+    	);
         const auto unit_x = (int)floor(x) & 255,
                    unit_y = (int)floor(y) & 255,
                    unit_z = (int)floor(z) & 255;
